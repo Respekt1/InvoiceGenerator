@@ -224,7 +224,7 @@ def main():
         invoiced_client['Address'] = raw_input('What is the address of {}?: '.format(selection))
     
     items = []
-    financials = {'total':0}
+    financials = {'total':0, 'vat':0}
     while True:
         print('Enter your billables and finish with ctrl+c')
         try:
@@ -239,6 +239,7 @@ def main():
 
             items.append([description, qty, price, price, vat, str(vat_tot), str(total)])
             financials['total'] += total
+            financials['vat'] += vat_tot
         except KeyboardInterrupt:
             break
 
