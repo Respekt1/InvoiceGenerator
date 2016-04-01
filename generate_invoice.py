@@ -167,7 +167,18 @@ def generate_pdf(company, items, financials):
     pdf.cell(0, 0,u'£'+str(financials['total']), 0, 0)
     
     # Banking information
+    pdf.rect(8.0, 220.0, 100.0, 30.0)
+    pdf.set_xy(10.0,225.0)
+    pdf.cell(0, 0,'PAYMENT METHOD: ', 0, 1)
+    pdf.set_y(235.0)
+    pdf.cell(0, 0,'Account Number: '+config['account_number'], 0, 1)
+    pdf.set_y(240.0)
+    pdf.cell(0, 0,'Sort Code: '+config['sort_code'], 0, 1)
 
+    # Thanks
+
+    pdf.set_xy(10.0,270.0)
+    pdf.cell(0, 0,'Thank you for your business!', 0, 0)
 
     # Generate PDF file
     pdf_file_name = "invoice-{}-{}.pdf".format(today.strftime("%Y-%m-%d"), company['Name'].replace(' ', '_'))
