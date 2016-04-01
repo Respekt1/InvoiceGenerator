@@ -12,6 +12,7 @@ from requests.auth import HTTPBasicAuth
 import fpdf
 import yaml
 import datetime
+import csv
 
 fh = open('config.yaml', 'r')
 config = yaml.load(fh)
@@ -23,8 +24,9 @@ companies_house_api_key = config['companies_house_api_key']
 gpg = gnupg.GPG(homedir=gpg_home)
 gpg.encoding = 'utf-8'
 
-
 today = datetime.datetime.now()
+
+
 
 class MyPDF(fpdf.FPDF):
     """"""
@@ -242,6 +244,10 @@ def main():
             financials['vat'] += vat_tot
         except KeyboardInterrupt:
             break
+
+    with open("invoices.csv", "a") as fp:
+        wr = csv.writer(fp, dialect='excel')
+        wr.writerow(items)
 
     file_name = generate_pdf(invoiced_client, items, financials)
 
