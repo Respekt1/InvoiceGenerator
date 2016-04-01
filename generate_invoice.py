@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: UTF-8 -*-
 """
 Simple script to generate PDF invoices, encrypt & email to clients.
 """
@@ -120,7 +121,7 @@ def generate_pdf(company, items, financials):
     pdf.set_xy(150.0, 70.0)
     pdf.cell(20, 0, today.strftime("%d/%m/%Y"), 0, 0, 'L')
     pdf.set_xy(170.0, 70.0)
-    pdf.cell(20, 0, str(financials['total']), 0, 0, 'L')
+    pdf.cell(20, 0, u'£'+str(financials['total']), 0, 0, 'L')
 
     # Main itemised list box
     # Header
@@ -150,20 +151,20 @@ def generate_pdf(company, items, financials):
         pdf.set_x(60.0)
         pdf.cell(0, 10, str(item[1]))
         pdf.set_x(80.0)
-        pdf.cell(0, 10, str(item[2]))
+        pdf.cell(0, 10, u'£'+str(item[2]))
         pdf.set_x(100.0)
-        pdf.cell(0, 10, str(item[3]))
+        pdf.cell(0, 10, u'£'+str(item[3]))
         pdf.set_x(120.0)
-        pdf.cell(0, 10, str(item[4]))
+        pdf.cell(0, 10, u'£'+str(item[4]))
         pdf.set_x(140.0)
-        pdf.cell(0, 10, str(item[5]))
+        pdf.cell(0, 10, u'£'+str(item[5]))
         pdf.set_x(180.0)
-        pdf.cell(0, 10, str(item[6]), 0, 1)
+        pdf.cell(0, 10, u'£'+str(item[6]), 0, 1)
 
     pdf.set_xy(140.0,200.0)
     pdf.cell(0, 0,'TOTAL: ', 0, 0)
     pdf.set_xy(180.0,200.0)
-    pdf.cell(0, 0,str(financials['total']), 0, 0)
+    pdf.cell(0, 0,u'£'+str(financials['total']), 0, 0)
     
     # Banking information
 
