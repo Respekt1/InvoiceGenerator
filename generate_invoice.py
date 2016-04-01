@@ -109,11 +109,11 @@ def generate_pdf(company, items, financials):
     pdf.rect(110, 55, 90.0, 25.0,style = 'DF')
     pdf.set_font("Arial", size=8)
     pdf.set_xy(120.0, 60.0)
-    pdf.cell(20, 0,'Invoice No', 0, 0, 'L')
+    pdf.cell(20, 0,'INVOICE NO', 0, 0, 'L')
     pdf.set_xy(150.0, 60.0)
-    pdf.cell(20, 0,'Invoice Date', 0, 0, 'L')
+    pdf.cell(20, 0,'INVOICE DATE', 0, 0, 'L')
     pdf.set_xy(170.0, 60.0)
-    pdf.cell(20, 0,'Total', 0, 0, 'L')
+    pdf.cell(20, 0,'TOTAL', 0, 0, 'L')
     pdf.ln(7)
     pdf.set_font("Arial", size=10)
     pdf.set_xy(120.0, 70.0)
@@ -223,8 +223,25 @@ def main():
         invoiced_client = {'Name': selection}
         invoiced_client['Address'] = raw_input('What is the address of {}?: '.format(selection))
     
-    items = [['IT consultancy', 2, 240, 240, 0, 0, 240], ['IT consultancy', 2, 240, 240, 0, 0, 240]]
-    financials = {'total':440}
+    items = []
+    financials = {'total':0}
+    while True:
+        print('Enter your billables and finish with ctrl+c')
+        try:
+            description = raw_input('description: ')
+            qty = raw_input('qty: ')
+            price = raw_input('price: ')
+            vat = raw_input('vat: ')
+
+            net = int(qty) * int(price)
+            vat_tot = int(qty) * int(vat)
+            total = net + vat_tot
+
+            items.append([description, qty, price, price, vat, str(vat_tot), str(total)])
+            financials['total'] += total
+        except KeyboardInterrupt:
+            break
+
     file_name = generate_pdf(invoiced_client, items, financials)
 
     if raw_input("Do you wish to encrypt your invoice? y/n: ") == 'y':
