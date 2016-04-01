@@ -26,7 +26,9 @@ gpg.encoding = 'utf-8'
 
 today = datetime.datetime.now()
 
-
+csv_fh = open('invoices.csv', 'r')
+row_count = sum(1 for row in csv_fh)
+csv_fh.close()
 
 class MyPDF(fpdf.FPDF):
     """"""
@@ -113,13 +115,13 @@ def generate_pdf(company, items, financials):
     pdf.set_xy(120.0, 60.0)
     pdf.cell(20, 0,'INVOICE NO', 0, 0, 'L')
     pdf.set_xy(150.0, 60.0)
-    pdf.cell(20, 0,'INVOICE DATE', 0, 0, 'L')
+    pdf.cell(20, 0,'DATE', 0, 0, 'L')
     pdf.set_xy(170.0, 60.0)
     pdf.cell(20, 0,'TOTAL', 0, 0, 'L')
     pdf.ln(7)
     pdf.set_font("Arial", size=10)
     pdf.set_xy(120.0, 70.0)
-    pdf.cell(20, 0,'0005', 0, 0, 'L')
+    pdf.cell(20, 0,str(row_count), 0, 0, 'L')
     pdf.set_xy(150.0, 70.0)
     pdf.cell(20, 0, today.strftime("%d/%m/%Y"), 0, 0, 'L')
     pdf.set_xy(170.0, 70.0)
@@ -239,7 +241,7 @@ def main():
             vat_tot = int(qty) * int(vat)
             total = net + vat_tot
 
-            items.append([description, qty, price, price, vat, str(vat_tot), str(total)])
+            items.append([description, qty, price, str(net), vat, str(vat_tot), str(total)])
             financials['total'] += total
             financials['vat'] += vat_tot
         except KeyboardInterrupt:
