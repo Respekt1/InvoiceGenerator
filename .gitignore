@@ -3,3 +3,4 @@ invoice-*.pdf
 *.gpg
 env
 config.yaml
+invoices.csv
