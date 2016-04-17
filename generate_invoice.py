@@ -13,6 +13,7 @@ import fpdf
 import yaml
 import datetime
 import csv
+import smtplib
 
 fh = open('config.yaml', 'r')
 config = yaml.load(fh)
@@ -32,6 +33,12 @@ csv_fh.close()
 
 class MyPDF(fpdf.FPDF):
     """"""
+    company = ''
+
+    def __init__(self, company, financials):
+        fpdf.FPDF.__init__(self)
+        self.company = company
+        self.financials = financials
  
     def header(self):
         """
@@ -40,17 +47,74 @@ class MyPDF(fpdf.FPDF):
         # set the font for the header, B=Bold
         self.set_font("Arial", style="B", size=18)
         # page title
-        self.cell(40,10, config['business_name'], border=0, ln=0, align="C")
+        self.set_xy(10.0, 15.0)
+        self.cell(0.0,0.0, config['business_name'], border=0, ln=0, align="L")
         self.set_x(150.0)
-        self.cell(40,10, 'INVOICE', border=0, ln=0, align="R")
-        # insert a line break of 20 pixels
-        self.ln(20)
+        self.cell(0.0,0.0, 'INVOICE', border=0, ln=0, align="R")
+        self.set_font("Arial", style="", size=11)
+        self.set_xy(10.0, 20.0)
+        address = config['business_address']['line1'] + "\n" + \
+                  config['business_address']['city'] + "\n" + \
+                  config['business_address']['county'] + "\n" + \
+                  config['business_address']['postal_code']
+        print(address)
+        self.multi_cell(0, 5, address, 0, 'L') 
+
+        # Border
+        self.rect(5.0, 5.0, 200.0, 280.0)
+
+        # Left client info
+        self.set_font("Arial", style='B', size=12)
+        self.set_xy(10.0, 55)
+        self.cell(0, 0,'INVOICE TO:', 0, 0, 'L')
+        self.set_font("Arial", style='', size=11)
+        self.set_y(60)
+        self.cell(0, 0, self.company['Name'], 0, 0, 'L')
+        self.set_y(65)
+        self.cell(0, 0,self.company['Address'], 0, 0, 'L')
+        self.set_y(70)
+
+        # Top right summary box
+        self.set_fill_color(255, 255, 255)
+        self.rect(110, 55, 90.0, 25.0,style = 'DF')
+        self.set_font("Arial", size=8)
+        self.set_xy(120.0, 60.0)
+        self.cell(20, 0,'INVOICE NO', 0, 0, 'L')
+        self.set_xy(150.0, 60.0)
+        self.cell(20, 0,'DATE', 0, 0, 'L')
+        self.set_xy(170.0, 60.0)
+        self.cell(20, 0,'TOTAL', 0, 0, 'L')
+        self.ln(7)
+        self.set_font("Arial", size=10)
+        self.set_xy(120.0, 70.0)
+        self.cell(20, 0,str(row_count), 0, 0, 'L')
+        self.set_xy(150.0, 70.0)
+        self.cell(20, 0, today.strftime("%d/%m/%Y"), 0, 0, 'L')
+        self.set_xy(170.0, 70.0)
+        self.cell(20, 0, u'£'+str(self.financials['total']), 0, 0, 'L')
  
 
     def footer(self):
         """
         Footer on each page
         """
+        # Banking information
+        self.rect(8.0, 220.0, 100.0, 30.0)
+        self.set_xy(10.0,225.0)
+        self.cell(0, 0,'PAYMENT METHOD: ', 0, 1)
+        self.set_y(235.0)
+        self.cell(0, 0,'Account Number: '+config['account_number'], 0, 1)
+        self.set_y(240.0)
+        self.cell(0, 0,'Sort Code: '+config['sort_code'], 0, 1)
+
+        # Thanks
+
+        self.set_font("Arial", size=9)
+        self.set_xy(10.0,260.0)
+        # multi_cell(w: float, h: float, txt: str, border = 0, align: str = 'J', fill: bool = False)
+        thank_you_text = 'On payment of the invoice, all intellectual property rights in the works are assigned to ' + self.company['Name'] + '.\nThank you for your business!'
+        self.multi_cell(0, 5, thank_you_text , 0, 'C')
+
         # position footer at 15mm from the bottom
         self.set_y(-15)
  
@@ -82,9 +146,9 @@ def encrypt_file(file_name):
             f, config['my_gpg_pub_id'], public_keys[int(ans)]['keyid'],
             output = file_name+'.gpg')
 
-    print 'ok: ', status.ok
-    print 'status: ', status.status
-    print 'stderr: ', status.stderr
+    print ('ok: '+ str(status.ok))
+    print ('status: '+ str(status.status))
+    print ('stderr: '+ str(status.stderr))
 
 
 def generate_pdf(company, items, financials):
@@ -92,40 +156,10 @@ def generate_pdf(company, items, financials):
     Blah
     '''
     print("Generating PDF Invoice..") 
-    pdf = MyPDF()
+    pdf = MyPDF(company, financials)
     pdf.alias_nb_pages()
     pdf.add_page()
     
-    # Border
-    pdf.rect(5.0, 5.0, 200.0, 280.0)
-
-    # Left client info
-    pdf.set_font("Arial", size=12)
-    pdf.cell(0, 10,'INVOICE TO:', 0, 0, 'L')
-    pdf.ln(7)
-    pdf.cell(0, 10,company['Name'], 0, 0, 'L')
-    pdf.ln(7)
-    pdf.cell(0, 10,company['Address'], 0, 1, 'L')
-    pdf.ln(15)
-
-    # Top right summary box
-    pdf.set_fill_color(255, 255, 255)
-    pdf.rect(110, 55, 90.0, 25.0,style = 'DF')
-    pdf.set_font("Arial", size=8)
-    pdf.set_xy(120.0, 60.0)
-    pdf.cell(20, 0,'INVOICE NO', 0, 0, 'L')
-    pdf.set_xy(150.0, 60.0)
-    pdf.cell(20, 0,'DATE', 0, 0, 'L')
-    pdf.set_xy(170.0, 60.0)
-    pdf.cell(20, 0,'TOTAL', 0, 0, 'L')
-    pdf.ln(7)
-    pdf.set_font("Arial", size=10)
-    pdf.set_xy(120.0, 70.0)
-    pdf.cell(20, 0,str(row_count), 0, 0, 'L')
-    pdf.set_xy(150.0, 70.0)
-    pdf.cell(20, 0, today.strftime("%d/%m/%Y"), 0, 0, 'L')
-    pdf.set_xy(170.0, 70.0)
-    pdf.cell(20, 0, u'£'+str(financials['total']), 0, 0, 'L')
 
     # Main itemised list box
     # Header
@@ -170,19 +204,6 @@ def generate_pdf(company, items, financials):
     pdf.set_xy(180.0,200.0)
     pdf.cell(0, 0,u'£'+str(financials['total']), 0, 0)
     
-    # Banking information
-    pdf.rect(8.0, 220.0, 100.0, 30.0)
-    pdf.set_xy(10.0,225.0)
-    pdf.cell(0, 0,'PAYMENT METHOD: ', 0, 1)
-    pdf.set_y(235.0)
-    pdf.cell(0, 0,'Account Number: '+config['account_number'], 0, 1)
-    pdf.set_y(240.0)
-    pdf.cell(0, 0,'Sort Code: '+config['sort_code'], 0, 1)
-
-    # Thanks
-
-    pdf.set_xy(10.0,270.0)
-    pdf.cell(0, 0,'Thank you for your business!', 0, 0)
 
     # Generate PDF file
     pdf_file_name = "invoice-{}-{}.pdf".format(today.strftime("%Y-%m-%d"), company['Name'].replace(' ', '_'))
@@ -204,6 +225,16 @@ def get_companies_house_info(s):
 
     return active_companies
 
+
+def send_email(toaddrs, company, invoice_name):
+
+    msg = '''Test'''
+
+    server = smtplib.SMTP('smtp.gmail.com:587')
+    server.starttls()
+    server.login(config['gmail_username'], config['gmail_application_password'])
+    server.sendmail(config['fromaddr'], toaddrs, msg)
+    server.quit()
 
 
 def main():
@@ -257,6 +288,8 @@ def main():
         encrypt_file(file_name)
     else:
         print('Not encrypting file: {}'.format(file_name))
+
+    # send_email()
     
 
 if __name__ == '__main__':
